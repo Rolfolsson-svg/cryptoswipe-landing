@@ -1,176 +1,89 @@
-import React, { useMemo, useState } from "react";
-import { motion, AnimatePresence, useAnimation, PanInfo } from "framer-motion";
+"use client";
+import React, { useState } from "react";
+import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
+import { Shield, Zap, Coins, Lock, Star } from "lucide-react";
 
-type Choice = "Köp" | "Sälj";
-
-type Card = {
-  id: number;
-  title: string;
-  text: string;
-};
-
-const initialCards: Card[] = [
-  { id: 1, title: "Bitcoin (BTC)", text: "Vill du köpa eller sälja?" },
-  { id: 2, title: "Ethereum (ETH)", text: "Vill du köpa eller sälja?" },
-  { id: 3, title: "Solana (SOL)", text: "Vill du köpa eller sälja?" },
-  { id: 4, title: "Arbitrum (ARB)", text: "Vill du köpa eller sälja?" },
-];
-
-export default function SwipeCards() {
-  const [cards, setCards] = useState<Card[]>(initialCards);
-
-  const removeTop = () =>
-    setCards((prev) => {
-      const [, ...rest] = prev;
-      return rest;
-    });
-
-  // För stack-effekten: visa översta + två bakom
-  const visible = useMemo(() => cards.slice(0, 3), [cards]);
-
-  return (
-    <div className="relative w-full">
-      <div className="relative mx-auto h-[540px] w-full max-w-sm">
-        <AnimatePresence initial={false}>
-          {visible.map((card, idx) => {
-            const depth = idx;
-            const scale = 1 - depth * 0.05;
-            const y = depth * 14;
-            const opacity = depth === 0 ? 1 : 0.9 - depth * 0.15;
-            const zIndex = 10 - depth;
-
-            return depth === 0 ? (
-              <TopSwipeCard
-                key={card.id}
-                card={card}
-                style={{ zIndex }}
-                onDone={removeTop}
-                backgroundStyle={{ scale, y, opacity }}
-              />
-            ) : (
-              <motion.div
-                key={card.id}
-                className="absolute inset-0"
-                style={{ zIndex }}
-                initial={{ scale: scale - 0.05, y: y + 10, opacity: 0 }}
-                animate={{ scale, y, opacity }}
-                exit={{ opacity: 0 }}
-                transition={{ type: "spring", stiffness: 260, damping: 24 }}
-              >
-                <CardShell title={card.title} text={card.text} />
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-
-        {cards.length === 0 && (
-          <div className="absolute inset-0 grid place-items-center text-center">
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-              <h3 className="text-xl font-semibold">Alla kort är slut 🎉</h3>
-              <p className="mt-1 opacity-80">Ladda om sidan för att börja om.</p>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/* Översta kortet – swipebart och har knappar */
-function TopSwipeCard({
-  card,
-  onDone,
-  style,
-  backgroundStyle,
-}: {
-  card: Card;
-  onDone: () => void;
-  style?: React.CSSProperties;
-  backgroundStyle?: { scale: number; y: number; opacity: number };
-}) {
-  const controls = useAnimation();
-
-  const fling = async (choice: Choice) => {
-    const x = choice === "Köp" ? 520 : -520;
-    await controls.start({
-      x,
-      rotate: choice === "Köp" ? 12 : -12,
-      opacity: 0,
-      transition: { duration: 0.28 },
-    });
-    onDone();
-  };
-
-  const onDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    const { offset, velocity } = info;
-    const goRight = offset.x > 140 || velocity.x > 800;
-    const goLeft = offset.x < -140 || velocity.x < -800;
-
-    if (goRight) return void fling("Köp");
-    if (goLeft) return void fling("Sälj");
-
-    controls.start({ x: 0, y: 0, rotate: 0, transition: { type: "spring", stiffness: 500, damping: 32 } });
-  };
+function SwipeCard({ i, onRemove }: { i: number; onRemove: (dir: "left" | "right") => void }) {
+  const x = useMotionValue(0);
+  const rotate = useTransform(x, [-200, 0, 200], [-12, 0, 12]);
+  const opacity = useTransform(x, [-200, 0, 200], [0.4, 1, 0.4]);
+  const likeOpacity = useTransform(x, [80, 160], [0, 1]);
+  const nopeOpacity = useTransform(x, [-160, -80], [1, 0]);
 
   return (
     <motion.div
       className="absolute inset-0"
-      style={style}
-      initial={{ scale: (backgroundStyle?.scale ?? 1) - 0.05, y: (backgroundStyle?.y ?? 0) + 10, opacity: 0 }}
-      animate={{ scale: backgroundStyle?.scale ?? 1, y: backgroundStyle?.y ?? 0, opacity: backgroundStyle?.opacity ?? 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ type: "spring", stiffness: 260, damping: 24 }}
+      style={{ x, rotate, opacity }}
+      drag="x"
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.8}
+      onDragEnd={(e, info) => {
+        if (info.offset.x > 160 || info.velocity.x > 800) onRemove("right");
+        if (info.offset.x < -160 || info.velocity.x < -800) onRemove("left");
+      }}
     >
-      <motion.div
-        className="h-full rounded-3xl border border-white/10 bg-white/5 p-6 text-white shadow-2xl backdrop-blur"
-        drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.9}
-        onDragEnd={onDragEnd}
-        animate={controls}
-        whileTap={{ cursor: "grabbing" }}
-      >
-        <CardInner title={card.title} text={card.text} />
+      <div className="h-full rounded-3xl overflow-hidden shadow-2xl">
+        {/* 🔥 Bakgrund + gradient */}
+        <div className="h-full relative text-white bg-gradient-to-br from-slate-900 via-indigo-900 to-fuchsia-700">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.12),transparent_60%)]" />
 
-        <div className="mt-6 grid grid-cols-2 gap-3">
-          <button
-            onClick={() => fling("Sälj")}
-            className="px-4 py-2 bg-red-500 text-white rounded-lg"
-          >
-            Sälj
-          </button>
-          <button
-            onClick={() => fling("Köp")}
-            className="px-4 py-2 bg-green-500 text-white rounded-lg"
-          >
-            Köp
-          </button>
+          <div className="p-6 flex items-start justify-between">
+            <span className="inline-flex items-center gap-2 text-xs bg-white/10 px-3 py-1 rounded-full">
+              <Shield size={14}/> Säker verifiering
+            </span>
+            <Star className="opacity-70" size={18} />
+          </div>
+
+          <div className="px-6 pb-6 flex flex-col h-full justify-end">
+            <h3 className="text-2xl font-semibold">Token #{i + 1}</h3>
+            <p className="text-sm opacity-90">
+              Snabbt val med höger/vänster-swipe. Bygg din korg på sekunder.
+            </p>
+            <div className="mt-4 flex items-center gap-3 text-xs">
+              <span className="inline-flex items-center gap-1 bg-white/10 px-2 py-1 rounded-full"><Zap size={14}/> Snabb</span>
+              <span className="inline-flex items-center gap-1 bg-white/10 px-2 py-1 rounded-full"><Lock size={14}/> Icke-förvar</span>
+              <span className="inline-flex items-center gap-1 bg-white/10 px-2 py-1 rounded-full"><Coins size={14}/> Låga avgifter</span>
+            </div>
+          </div>
+
+          {/* Swipe labels */}
+          <motion.div style={{ opacity: likeOpacity }} className="absolute top-5 left-5">
+            <div className="uppercase tracking-widest text-xs bg-emerald-400 text-slate-900 px-3 py-1 rounded-full">Köp</div>
+          </motion.div>
+          <motion.div style={{ opacity: nopeOpacity }} className="absolute top-5 right-5">
+            <div className="uppercase tracking-widest text-xs bg-rose-400 text-slate-900 px-3 py-1 rounded-full">Sälj</div>
+          </motion.div>
         </div>
-      </motion.div>
+      </div>
     </motion.div>
   );
 }
 
-function CardShell({ title, text }: { title: string; text: string }) {
+export default function SwipeCards() {
+  const [cards, setCards] = useState([0, 1, 2, 3]);
+  const removeTop = (dir: "left" | "right") => {
+    console.log("Swiped", dir);
+    setCards((c) => c.slice(0, -1));
+  };
+
   return (
-    <div className="h-full rounded-3xl border border-white/10 bg-white/5 p-6 text-white shadow-xl backdrop-blur">
-      <CardInner title={title} text={text} muted />
+    <div className="relative h-[520px] w-full max-w-sm mx-auto">
+      <AnimatePresence>
+        {cards.map((c) => (
+          <SwipeCard key={c} i={c} onRemove={removeTop} />
+        ))}
+      </AnimatePresence>
+      {cards.length === 0 && (
+        <div className="absolute inset-0 grid place-items-center text-center text-slate-800 bg-white rounded-3xl shadow-lg">
+          <div>
+            <h4 className="font-semibold">Klart! 🎉</h4>
+            <p className="text-sm opacity-70">
+              Du har byggt din korg. Tryck på "Köp" för att slutföra.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function CardInner({ title, text, muted = false }: { title: string; text: string; muted?: boolean }) {
-  return (
-    <div className="flex h-full flex-col">
-      <div className="mb-4">
-        <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs">
-          Säker verifiering
-        </span>
-      </div>
-      <div className="mt-auto">
-        <h3 className={`text-2xl font-semibold ${muted ? "opacity-80" : ""}`}>{title}</h3>
-        <p className={`mt-1 text-sm ${muted ? "opacity-60" : "opacity-80"}`}>{text}</p>
-      </div>
-    </div>
-  );
-}
