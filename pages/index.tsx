@@ -1,3 +1,9 @@
+import dynamic from "next/dynamic";
+const SwipeCards = dynamic(() => import("../components/SwipeCards"), { ssr: false });
+
+
+
+
 import React from 'react'
 import Image from 'next/image'
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion'
@@ -150,7 +156,8 @@ function PricingTier({name, price, features, highlight}:{name:string; price:stri
 }
 
 export default function Page(){
-  return (
+  return ( <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <SwipeCards />
     <div className="min-h-screen">
       <Navbar />
 
