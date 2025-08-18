@@ -11,7 +11,7 @@ function Navbar() {
   const [open, setOpen] = React.useState(false);
   return (
     <header className="fixed top-0 inset-x-0 z-50 border-b border-white/10 backdrop-blur">
-      <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
+      <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between text-white"> {/* 🔥 text vit */}
         <a href="#" className="flex items-center gap-2">
           <Image src="/logo.png" alt="CryptoSwipe" width={36} height={36} />
           <span className="font-semibold tracking-tight text-lg">CryptoSwipe</span>
@@ -30,27 +30,13 @@ function Navbar() {
           {open ? <X size={18} /> : <Menu size={18} />}
         </button>
       </div>
-      {open && (
-        <div className="md:hidden border-t border-white/10">
-          <div className="max-w-6xl mx-auto px-4 py-4 grid gap-3 text-sm">
-            <a href="#features" onClick={() => setOpen(false)}>Funktioner</a>
-            <a href="#how" onClick={() => setOpen(false)}>Så funkar det</a>
-            <a href="#pricing" onClick={() => setOpen(false)}>Priser</a>
-            <a href="#faq" onClick={() => setOpen(false)}>FAQ</a>
-            <div className="flex gap-2 pt-2">
-              <Button variant="ghost" className="flex-1 rounded-2xl">Logga in</Button>
-              <Button className="flex-1 rounded-2xl">Kom igång</Button>
-            </div>
-          </div>
-        </div>
-      )}
     </header>
   );
 }
 
 function Feature({ icon: Icon, title, desc }: { icon: any; title: string; desc: string }) {
   return (
-    <Card>
+    <Card className="bg-white/5 backdrop-blur text-white"> {/* 🔥 glas-effekt */}
       <CardBody>
         <div className="h-10 w-10 rounded-2xl grid place-items-center bg-gradient-to-br from-brand-start to-brand-end text-white">
           <Icon size={18} />
@@ -64,7 +50,8 @@ function Feature({ icon: Icon, title, desc }: { icon: any; title: string; desc: 
 
 function PricingTier({ name, price, features, highlight }: { name: string; price: string; features: string[]; highlight?: boolean }) {
   return (
-    <Card className={highlight ? "ring-2 ring-brand/80 shadow-xl" : ""}>
+    <Card className={`bg-white/5 backdrop-blur text-white ${highlight ? "ring-2 ring-brand/80 shadow-xl" : ""}`}>
+      {/* 🔥 glas-effekt */}
       <CardBody>
         <div className="flex items-baseline justify-between">
           <h4 className="font-semibold">{name}</h4>
@@ -88,7 +75,7 @@ function PricingTier({ name, price, features, highlight }: { name: string; price
 
 export default function Page() {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-fuchsia-700 text-white"> {/* 🔥 gradient bakgrund */}
       <Navbar />
 
       <section className="pt-28 md:pt-32 pb-10">
@@ -137,8 +124,49 @@ export default function Page() {
         </div>
       </section>
 
-      {/* Resten av dina sektioner */}
-      {/* ... behåll features, pricing, FAQ, footer här från din gamla kod */}
+      {/* Features */}
+      <section id="features" className="py-16">
+        <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-3 gap-6">
+          <Feature icon={Zap} title="Blixtsnabb onboarding" desc="Skapa konto och börja swipa på under en minut – utan KYC för småbelopp." />
+          <Feature icon={Shield} title="Säkerhet i fokus" desc="Icke-förvar, hårdvarunycklar och smarta riskgränser skyddar dina medel." />
+          <Feature icon={Coins} title="Smart orderrouting" desc="Får automatiskt bästa pris via ledande DEX:ar/CEX:ar med låg slippage." />
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section id="pricing" className="py-16">
+        <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-3 gap-6 items-stretch">
+          <PricingTier name="Free" price="0 kr" features={["Upp till 5 köp/mån","Grundläggande analyser","E-postsupport"]} />
+          <PricingTier name="Pro" price="129 kr" highlight features={["Obegränsade köp","Avancerade signaler","Prioriterad support"]} />
+          <PricingTier name="Team" price="299 kr" features={["Delade portföljer","Behörigheter","SLA-support"]} />
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="py-16 max-w-4xl mx-auto px-4">
+        <div className="bg-white/5 backdrop-blur rounded-2xl p-6 text-white"> {/* 🔥 glas-effekt */}
+          <h3 className="text-2xl font-semibold">Vanliga frågor</h3>
+          <div className="mt-6 space-y-4">
+            <details className="p-4 rounded-xl bg-white/5">
+              <summary className="font-medium cursor-pointer">Är CryptoSwipe en förvaringsplånbok?</summary>
+              <p className="mt-2 text-sm opacity-80">Nej. Vi är icke-förvar – du äger dina nycklar och ansluter din egen plånbok.</p>
+            </details>
+            <details className="p-4 rounded-xl bg-white/5">
+              <summary className="font-medium cursor-pointer">Vilka kedjor stöds?</summary>
+              <p className="mt-2 text-sm opacity-80">Startar med Ethereum och Arbitrum; fler EVM-kedjor läggs till löpande.</p>
+            </details>
+            <details className="p-4 rounded-xl bg-white/5">
+              <summary className="font-medium cursor-pointer">Tar ni avgifter?</summary>
+              <p className="mt-2 text-sm opacity-80">Gratis för småvolymer. Pro och Team erbjuder lägre spread och premiumfunktioner.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-10 border-t border-white/10 text-sm opacity-80 text-center">
+        © {new Date().getFullYear()} CryptoSwipe AB
+      </footer>
     </div>
   );
 }
